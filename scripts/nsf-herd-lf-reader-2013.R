@@ -8,9 +8,10 @@
 #
 
 # Load Libraries
-library(reshape2)     #For data transpositions
-library(plyr)         #For aggregation and iterative changes to records
-library(ggplot2)      #For quick plots and diagnostics
+library(reshape2)     # For data transpositions
+library(plyr)         # For aggregation and iterative changes to records
+library(ggplot2)      # For quick plots and diagnostics
+library(RODBC)        # For writing to SQL Server
 
 # specs for the present year's data
 year <- 2013L
@@ -25,43 +26,6 @@ raw.data <- read.table(file=input.url,
                        header=TRUE,
                        sep=",",
                        quote="\"",
-                       colClasses = c('integer',
-                                      'integer',
-                                      'character',
-                                      'character',
-                                      'character',
-                                      'integer',
-                                      'integer',
-                                      'integer',
-                                      'character',
-                                      'character',
-                                      'character',
-                                      'character',
-                                      'integer',
-                                      'integer',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'integer',
-                                      'character',
-                                      'character',
-                                      'character',
-                                      'character'),
                        skip=0,
                        row.names=NULL,
                        stringsAsFactors=FALSE,
@@ -77,7 +41,6 @@ nsf.data <- rbind.fill(nsf.data,raw.data)
 
 # Housekeeping
 rm(raw.data)
-rm(i)
 rm(data.specs)
 
 # Write the full datafile
@@ -90,6 +53,23 @@ write.table(nsf.data,
             col.names=TRUE,
             na = "")               # Set the missing values to blanks
 
+# Open a connection to ipeds database (needs ODBC source named ipeds to work)
+con <-odbcConnect("OSPIR-Dev")
+
+# Append value to DegreeCompletions table.  Run ONCE or there will be a key violation
+sqlSave(con,
+        nsf.data,
+        tablename='stg.NsfRD',
+        rownames=FALSE,
+        verbose=FALSE,
+        safer=TRUE,
+        fast=TRUE,
+        test=FALSE)
+
+# Close the connection to the db
+close(con)
+
 # Housekeeping
+rm(con)
 rm(nsf.data)
 rm(output.specs)
