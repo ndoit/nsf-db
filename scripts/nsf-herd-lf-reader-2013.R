@@ -16,7 +16,7 @@ library(RODBC)        # For writing to SQL Server
 # specs for the present year's data
 year <- 2013L
 input.url <- 'http://www.nsf.gov/statistics/herd/data/exp2013.csv'
-output.specs <- "output-data/NsfRdData.csv"
+output.specs <- "output-data/NsfRd-Lf2013.csv"
 
 # Create empty data frame to hold aggregate datafile
 nsf.data <- data.frame()
@@ -41,7 +41,7 @@ nsf.data <- rbind.fill(nsf.data,raw.data)
 
 # Housekeeping
 rm(raw.data)
-rm(data.specs)
+# rm(data.specs)
 
 # Write the full datafile
 write.table(nsf.data,
@@ -59,7 +59,7 @@ con <-odbcConnect("OSPIR-Dev")
 # Append value to DegreeCompletions table.  Run ONCE or there will be a key violation
 sqlSave(con,
         nsf.data,
-        tablename='stg.NsfRD',
+        tablename='extract.NsfRd',
         rownames=FALSE,
         verbose=FALSE,
         safer=TRUE,
